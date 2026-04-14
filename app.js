@@ -325,3 +325,116 @@ if (requestsAltSection && requestsAltToggle) {
     requestsAltToggle.textContent = isOpen ? "Згорнути" : "Читати більше";
   });
 }
+
+const productCards = document.querySelectorAll(".product-card");
+
+productCards.forEach((card) => {
+  const toggleBtn = card.querySelector(".product-card__toggle");
+
+  if (!toggleBtn) return;
+
+  toggleBtn.addEventListener("click", () => {
+    card.classList.toggle("is-open");
+
+    const isOpen = card.classList.contains("is-open");
+    toggleBtn.textContent = isOpen ? "Сховати" : "Читати більше";
+  });
+});
+
+const reviewsTrack = document.querySelector(".reviews-slider__track");
+const reviewsCards = document.querySelectorAll(".reviews-card");
+const reviewsPrev = document.querySelector(".reviews-slider__arrow--prev");
+const reviewsNext = document.querySelector(".reviews-slider__arrow--next");
+const reviewsDots = document.querySelector(".reviews-slider__dots");
+
+if (
+  reviewsTrack &&
+  reviewsCards.length &&
+  reviewsPrev &&
+  reviewsNext &&
+  reviewsDots
+) {
+  let currentReviewIndex = 0;
+
+  const getReviewsPerView = () => {
+    if (window.innerWidth <= 768) return 1;
+    if (window.innerWidth <= 1100) return 2;
+    return 3;
+  };
+
+  const createReviewDots = () => {
+    reviewsDots.innerHTML = "";
+    const pages = Math.ceil(reviewsCards.length / getReviewsPerView());
+
+    for (let i = 0; i < pages; i++) {
+      const dot = document.createElement("button");
+      dot.className = "reviews-slider__dot";
+      dot.type = "button";
+      dot.setAttribute("aria-label", `Перейти до групи відгуків ${i + 1}`);
+
+      dot.addEventListener("click", () => {
+        currentReviewIndex = i;
+        updateReviewsSlider();
+      });
+
+      reviewsDots.appendChild(dot);
+    }
+  };
+
+  const updateReviewCards = () => {
+    reviewsCards.forEach((card) => card.classList.remove("is-active"));
+
+    const perView = getReviewsPerView();
+    const start = currentReviewIndex * perView;
+    const end = start + perView;
+
+    reviewsCards.forEach((card, index) => {
+      if (index >= start && index < end) {
+        card.classList.add("is-active");
+      }
+    });
+  };
+
+  const updateReviewDots = () => {
+    const dots = reviewsDots.querySelectorAll(".reviews-slider__dot");
+    dots.forEach((dot, index) => {
+      dot.classList.toggle("is-active", index === currentReviewIndex);
+    });
+  };
+
+  const updateReviewsSlider = () => {
+    const perView = getReviewsPerView();
+    const gap = 24;
+    const cardWidth = reviewsCards[0].offsetWidth + gap;
+    const maxIndex = Math.ceil(reviewsCards.length / perView) - 1;
+
+    if (currentReviewIndex < 0) currentReviewIndex = 0;
+    if (currentReviewIndex > maxIndex) currentReviewIndex = maxIndex;
+
+    reviewsTrack.style.transform = `translateX(-${currentReviewIndex * cardWidth * perView}px)`;
+
+    updateReviewCards();
+    updateReviewDots();
+  };
+
+  reviewsPrev.addEventListener("click", () => {
+    currentReviewIndex -= 1;
+    updateReviewsSlider();
+  });
+
+  reviewsNext.addEventListener("click", () => {
+    currentReviewIndex += 1;
+    updateReviewsSlider();
+  });
+
+  window.addEventListener("resize", () => {
+    const maxIndex = Math.ceil(reviewsCards.length / getReviewsPerView()) - 1;
+    if (currentReviewIndex > maxIndex) currentReviewIndex = maxIndex;
+
+    createReviewDots();
+    updateReviewsSlider();
+  });
+
+  createReviewDots();
+  updateReviewsSlider();
+}
